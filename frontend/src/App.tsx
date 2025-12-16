@@ -1,62 +1,32 @@
 import { useState } from 'react';
-import { SearchScreen } from './components/SearchScreen';
-import { SettingsScreen } from './components/SettingsScreen';
+import { Login } from './components/Login';
+import { Dashboard } from './components/Dashboard';
+import { Search } from './components/Search';
+import { Booking } from './components/Booking';
+import { Payment } from './components/Payment';
 
-export interface TimeZoneLocation {
-  id: string;
-  city: string;
-  country: string;
-  timezone: string;
-  utcOffset: number;
-  isDST?: boolean;
-}
+type Screen = 'login' | 'dashboard' | 'search' | 'booking' | 'payment';
 
-export type Screen = 'search' | 'settings';
+export default function App() {
+  const [currentScreen, setCurrentScreen] = useState<Screen>('login');
+  const [selectedHotel, setSelectedHotel] = useState<any>(null);
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
 
-function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('search');
-  const [savedLocations, setSavedLocations] = useState<TimeZoneLocation[]>([
-    { id: '1', city: 'New York', country: 'USA', timezone: 'America/New_York', utcOffset: -5, isDST: false },
-    { id: '2', city: 'London', country: 'UK', timezone: 'Europe/London', utcOffset: 0, isDST: false },
-    { id: '3', city: 'Tokyo', country: 'Japan', timezone: 'Asia/Tokyo', utcOffset: 9, isDST: false },
-    { id: '4', city: 'Sydney', country: 'Australia', timezone: 'Australia/Sydney', utcOffset: 11, isDST: true },
-    { id: '5', city: 'Dubai', country: 'UAE', timezone: 'Asia/Dubai', utcOffset: 4, isDST: false },
-    { id: '6', city: 'Singapore', country: 'Singapore', timezone: 'Asia/Singapore', utcOffset: 8, isDST: false },
-  ]);
-
-  const addLocation = (location: TimeZoneLocation) => {
-    setSavedLocations([...savedLocations, location]);
-  };
-
-  const removeLocation = (id: string) => {
-    setSavedLocations(savedLocations.filter(loc => loc.id !== id));
-  };
-
-  const updateLocation = (id: string, updates: Partial<TimeZoneLocation>) => {
-    setSavedLocations(savedLocations.map(loc => 
-      loc.id === id ? { ...loc, ...updates } : loc
-    ));
+  const navigateToScreen = (screen: Screen, data?: any) => {
+    if (data) {
+      if (screen === 'booking') setSelectedHotel(data);
+      if (screen === 'payment') setBookingDetails(data);
+    }
+    setCurrentScreen(screen);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {currentScreen === 'search' ? (
-        <SearchScreen 
-          locations={savedLocations}
-          onNavigateToSettings={() => setCurrentScreen('settings')}
-          onRemoveLocation={removeLocation}
-        />
-      ) : (
-        <SettingsScreen 
-          locations={savedLocations}
-          onNavigateToSearch={() => setCurrentScreen('search')}
-          onAddLocation={addLocation}
-          onRemoveLocation={removeLocation}
-          onUpdateLocation={updateLocation}
-        />
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+      {currentScreen === 'login' && <Login onNavigate={() => navigateToScreen('dashboard')} />}
+      {currentScreen === 'dashboard' && <Dashboard onNavigate={() => navigateToScreen('search')} />}
+      {currentScreen === 'search' && <Search onNavigate={(hotel) => navigateToScreen('booking', hotel)} />}
+      {currentScreen === 'booking' && <Booking hotel={selectedHotel} onNavigate={(booking) => navigateToScreen('payment', booking)} />}
+      {currentScreen === 'payment' && <Payment booking={bookingDetails} onNavigate={() => navigateToScreen('login')} />}
     </div>
   );
 }
-
-export default App;
